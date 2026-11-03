@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Driver Self-Service Kiosk — Parking Management System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --success: #059669;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand-title { font-weight: 800; font-size: 16px; }
+    .back-home { font-size: 13px; color: var(--muted); text-decoration: none; font-weight: 600; }
+    .back-home:hover { color: var(--primary); }
+
+    main {
+      max-width: 860px;
+      width: 100%;
+      margin: 32px auto;
+      padding: 0 20px;
+    }
+    .tabs-nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      border: 1px solid var(--border);
+      background: #ffffff;
+      padding: 11px 22px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--muted);
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      background: #e0f2fe;
+      color: var(--primary);
+      border-color: #bae6fd;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+      padding: 28px;
+    }
+    .card-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+    .card-sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    input, select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+    }
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--primary); color: white; width: 100%; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-success { background: var(--success); color: white; }
+
+    .result-box {
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      display: none;
+    }
+    .ticket-display {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 22px;
+      margin-top: 14px;
+    }
+    .ticket-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .ticket-label { color: var(--muted); }
+    .ticket-val { font-weight: 700; }
+    .ticket-due {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title">Building Parking Complex — Driver Self-Service Kiosk</div>
+    <a href="/" class="back-home">← Switch Portal</a>
+  </header>
+
+  <main>
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchKioskTab('checkin')">1. Vehicle Entry (Check-In)</button>
+      <button class="tab-btn" onclick="switchKioskTab('lookup')">2. Locate Parked Bay & Pay</button>
+    </div>
+
+    <!-- TAB 1: CHECK-IN -->
+    <div id="kiosk-checkin" class="card">
+      <div class="card-title">Vehicle Arrival Check-In</div>
+      <div class="card-sub">Enter your vehicle license plate and personal contact to receive an allocated bay.</div>
+
+      <form id="driver-checkin-form" onsubmit="handleDriverCheckin(event)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label>License Plate Number *</label>
+            <input type="text" id="d-plate" placeholder="Enter vehicle plate" required style="font-weight: 700; text-transform: uppercase;">
+          </div>
+          <div class="form-group">
+            <label>Vehicle Type *</label>
+            <select id="d-type">
+              <option value="1">Standard Car</option>
+              <option value="2">Motorcycle</option>
+              <option value="3">Truck / Heavy</option>
+              <option value="4">Electric Vehicle (EV)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label>Driver Full Name *</label>
+            <input type="text" id="d-name" placeholder="Enter your full name" required>
+          </div>
+          <div class="form-group">
+            <label>Mobile Phone Number *</label>
+            <input type="text" id="d-phone" placeholder="Enter contact phone number" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email Address <span style="font-weight: 500; color: var(--muted); font-size: 12px;">(Optional — for digital e-receipt)</span></label>
+          <input type="email" id="d-email" placeholder="e.g. driver@example.com (leave blank if none)">
+        </div>
+
+        <div class="form-group">
+          <label>Select Preferred Building Floor Deck</label>
+          <select id="d-floor">
+            <option value="1">Level 1 — Ground Deck (Disabled & Standard Bays)</option>
+            <option value="2">Level 2 — Mezzanine Floor (Standard & EV Bays)</option>
+            <option value="3">Level 3 — Upper Deck (Standard Bays)</option>
+            <option value="4">Level 4 — Rooftop Deck (Open Bays)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Authorize Entry & Open Barrier</button>
+      </form>
+
+      <div id="checkin-res" class="result-box"></div>
+    </div>
+
+    <!-- TAB 2: LOOKUP & PAY -->
+    <div id="kiosk-lookup" class="card" style="display: none;">
+      <div class="card-title">Find Parked Vehicle & Settle Balance</div>
+      <div class="card-sub">Your license plate number acts as your access token. Enter it below:</div>
+
+      <form id="driver-lookup-form" onsubmit="handleDriverLookup(event)">
+        <div class="form-group">
+          <label>License Plate Number</label>
+          <div style="display: flex; gap: 12px;">
+            <input type="text" id="lookup-plate" placeholder="Enter plate number" required style="font-weight: 700; text-transform: uppercase;">
+            <button type="submit" class="btn btn-success" style="width: 200px;">Search Ticket</button>
+          </div>
+        </div>
+      </form>
+
+      <div id="lookup-res" class="result-box"></div>
+    </div>
+  </main>
+
+  <script>
+    function switchKioskTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.getElementById('kiosk-checkin').style.display = tab === 'checkin' ? 'block' : 'none';
+      document.getElementById('kiosk-lookup').style.display = tab === 'lookup' ? 'block' : 'none';
+    }
+
+    async function handleDriverCheckin(e) {
+      e.preventDefault();
+      const resBox = document.getElementById('checkin-res');
+      resBox.style.display = 'block';
+      resBox.innerHTML = '<span style="color: var(--muted);">Communicating with barrier engine...</span>';
+
+      const payload = {
+        plate_number: document.getElementById('d-plate').value,
+        driver_name: document.getElementById('d-name').value,
+        phone: document.getElementById('d-phone').value,
+        email: document.getElementById('d-email').value.trim() || null,
+        vehicle_type_id: document.getElementById('d-type').value,
+        preferred_floor: document.getElementById('d-floor').value
+      };
+
+      try {
+        const res = await fetch('/api/driver/checkin', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          resBox.innerHTML = `
+            <div style="color: var(--success); font-weight: 700; font-size: 15px; margin-bottom: 8px;">✓ Entry Authorized!</div>
+            <p style="font-size: 14px; margin-bottom: 10px;">${data.message}</p>
+            <div style="background: white; border: 1px solid var(--border); padding: 14px; border-radius: 8px; line-height: 1.6;">
+              <strong>Floor:</strong> ${data.floor}<br>
+              <strong>Assigned Space:</strong> <span style="font-size: 18px; color: var(--primary); font-weight: 800;">Bay ${data.bay}</span><br>
+              <strong>Driver:</strong> ${data.driver_name} (${data.phone})<br>
+              <strong>Receipt Delivery:</strong> ${data.email ? data.email + ' (e-receipt registered)' : '<span style="color: var(--muted);">SMS receipt only (No email provided)</span>'}
+            </div>
+          `;
+          document.getElementById('driver-checkin-form').reset();
+        } else {
+          resBox.innerHTML = `<span style="color: #e11d48; font-weight: 700;">✗ ${data.message}</span>`;
+        }
+      } catch (err) {
+        resBox.innerHTML = '<span style="color: #e11d48;">✗ Server connection error.</span>';
+      }
+    }
+
+    async function handleDriverLookup(e) {
+      e.preventDefault();
+      const resBox = document.getElementById('lookup-res');
+      resBox.style.display = 'block';
+      resBox.innerHTML = '<span style="color: var(--muted);">Searching parking records...</span>';
+
+      const plate = document.getElementById('lookup-plate').value;
+
+      try {
+        const res = await fetch('/api/driver/lookup', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({plate_number: plate})
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'found') {
+          const t = data.ticket;
+          resBox.innerHTML = `
+            <div class="ticket-display">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <span style="font-size: 18px; font-weight: 800; color: var(--text);">${t.plate_number}</span>
+                <span style="font-size: 12px; font-weight: 700; color: var(--muted);">SESSION #${t.session_id}</span>
+              </div>
+              <div class="ticket-row"><span class="ticket-label">Registered Driver:</span><span class="ticket-val">${t.driver}</span></div>
+              <div class="ticket-row"><span class="ticket-label">Contact Phone:</span><span class="ticket-val">${t.phone || '—'}</span></div>
+              <div class="ticket-row"><span class="ticket-label">Email:</span><span class="ticket-val">${t.email || '<span style="color: var(--muted); font-weight: normal;">Not provided (Optional)</span>'}</span></div>
+              <div class="ticket-row"><span class="ticket-label">Parked Location:</span><span class="ticket-val">${t.floor} — Bay ${t.space_number}</span></div>
+              <div class="ticket-row"><span class="ticket-label">Entry Time:</span><span class="ticket-val">${t.entry_time}</span></div>
+              <div class="ticket-row"><span class="ticket-label">Duration Parked:</span><span class="ticket-val">${t.time_parked || (t.minutes_parked + ' mins')}</span></div>
+              <div class="ticket-row"><span class="ticket-label">Rate:</span><span class="ticket-val">3,000 UGX / hr</span></div>
+              ${t.overstay ? `
+              <div class="ticket-row" style="color: #0369a1; font-weight: 600;">
+                <span>Overstay Surcharge (+5,000 UGX/extra hr beyond 8h):</span>
+                <span>+${Number(t.overstay_penalty).toLocaleString()} UGX</span>
+              </div>` : ''}
+              <div class="ticket-row ticket-due">
+                <span>Total Amount Due:</span>
+                <span>${Number(t.total_due).toLocaleString()} UGX</span>
+              </div>
+              <div style="margin-top: 16px;">
+                <button onclick="alert('Proceeding to automated payment (Mobile Money / Card)... Payment Verified!')" class="btn btn-success" style="width: 100%;">Pay at Machine (Card / Mobile Money)</button>
+              </div>
+            </div>
+          `;
+        } else {
+          resBox.innerHTML = `<span style="color: #e11d48; font-weight: 600;">✗ ${data.message}</span>`;
+        }
+      } catch (err) {
+        resBox.innerHTML = '<span style="color: #e11d48;">✗ Error retrieving ticket.</span>';
+      }
+    }
+  </script>
+</body>
+</html>

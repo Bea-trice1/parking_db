@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Executive Manager Dashboard — Parking Management System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js for Interactive Frontend Visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>window.Chart || document.write('<script src="/static/js/chart.min.js"><\/script>')</script>
+  
+  <style>
+    :root {
+      --canvas: #f4f9ff;
+      --card: #ffffff;
+      --border: #e0f2fe;
+      --primary: #0284c7;
+      --text: #0f172a;
+      --muted: #64748b;
+      --radius-card: 16px;
+      --shadow-float: 0 4px 14px rgba(56, 189, 248, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--canvas);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    aside {
+      width: 260px;
+      background: #ffffff;
+      border-right: 1.5px solid var(--border);
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      padding-left: 4px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 17px;
+    }
+
+    .brand-title { font-weight: 800; font-size: 15px; }
+    .brand-subtitle { font-size: 11px; color: var(--muted); }
+
+    .nav-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin: 16px 0 8px 8px;
+    }
+
+    .sidebar-btn {
+      width: 100%;
+      text-align: left;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.15s ease;
+      font-family: inherit;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-btn:hover { background: #f0f7ff; color: var(--primary); }
+    .sidebar-btn.active { background: #e0f2fe; color: var(--primary); font-weight: 700; }
+    .sidebar-footer { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--border); }
+
+    .content-area {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    header {
+      background: #ffffff;
+      border-bottom: 1.5px solid var(--border);
+      padding: 16px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-title { font-size: 16.5px; font-weight: 800; }
+    .header-user-status { font-size: 13px; color: var(--text); font-weight: 500; }
+    .btn-signout { color: #dc2626; text-decoration: none; font-weight: 600; margin-left: 12px; font-size: 13px; }
+    .btn-signout:hover { text-decoration: underline; }
+
+    main { padding: 28px 36px; max-width: 1240px; width: 100%; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 20px;
+      box-shadow: var(--shadow-float);
+    }
+
+    .kpi-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 8px; }
+    .kpi-amount { font-size: 22px; font-weight: 800; color: var(--text); }
+    .kpi-note { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .dashboard-section { display: none; }
+    .dashboard-section.active { display: block; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 24px;
+      box-shadow: var(--shadow-float);
+      margin-bottom: 22px;
+    }
+
+    .card-title { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+    .card-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+
+    /* Level Block Headers */
+    .level-block {
+      margin-bottom: 26px;
+    }
+    .level-header {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 10px;
+      padding-bottom: 4px;
+      border-bottom: 1.5px solid #e0f2fe;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .level-meta {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    thead th {
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    tbody td {
+      padding: 13px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: var(--text);
+    }
+
+    tbody tr:hover { background: #f8fafc; }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+
+    .chart-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 22px 24px;
+      text-align: left;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-title {
+      font-weight: 700;
+      font-size: 14.5px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .chart-desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .chart-canvas-wrapper {
+      position: relative;
+      height: 290px;
+      width: 100%;
+      flex-grow: 1;
+    }
+
+    .history-filter-btn {
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      padding: 7px 15px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .history-filter-btn:hover {
+      background: #f0f7ff;
+      color: var(--primary);
+    }
+    .history-filter-btn.active {
+      background: #e0f2fe;
+      color: var(--primary);
+      border-color: #bae6fd;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LEFT SIDEBAR -->
+  <aside>
+    <div class="brand-area">
+      <div class="brand-icon">P</div>
+      <div>
+        <div class="brand-title">Building Complex</div>
+        <div class="brand-subtitle">Executive Suite</div>
+      </div>
+    </div>
+
+    <div class="nav-label">Management Views</div>
+    <button class="sidebar-btn active" onclick="switchSection('revenue-sec', this)">
+      <span>💰</span> Revenue Analytics
+    </button>
+    <button class="sidebar-btn" onclick="switchSection('occupancy-sec', this)">
+      <span>🚗</span> Parked Vehicles by Level
+    </button>
+    <button class="sidebar-btn" onclick="switchSection('history-sec', this)">
+      <span>🕒</span> Parking History
+    </button>
+    <button class="sidebar-btn" onclick="switchSection('visuals-sec', this)">
+      <span>📊</span> Graphical Insights
+    </button>
+
+    <div class="sidebar-footer">
+      <a href="/" class="sidebar-btn" style="color: var(--muted);">
+        <span>🏠</span> Switch Gateway
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEWPORT -->
+  <div class="content-area">
+    <header>
+      <div class="header-title">Executive Manager Dashboard</div>
+      <div class="header-user-status">
+        Connected as: <strong>parking_admin</strong>
+        <a href="/logout" class="btn-signout">Sign Out</a>
+      </div>
+    </header>
+
+    <main>
+      <!-- TOP 4 METRIC CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Lifetime Revenue</div>
+          <div id="kpi-total" class="kpi-amount">186,500 UGX</div>
+          <div class="kpi-note">Across all 4 building decks</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Peak Daily Intake</div>
+          <div id="kpi-peak" class="kpi-amount">77,000 UGX</div>
+          <div class="kpi-note">Highest single-day collection</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Staff Assisted Collection</div>
+          <div id="kpi-staff" class="kpi-amount">99,500 UGX</div>
+          <div class="kpi-note">Cash taken by floor attendants</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Automated Kiosk Intake</div>
+          <div id="kpi-kiosk" class="kpi-amount">87,000 UGX</div>
+          <div class="kpi-note">Self-service Card & MoMo</div>
+        </div>
+      </div>
+
+      <!-- SECTION 1: REVENUE ANALYTICS -->
+      <div id="revenue-sec" class="dashboard-section active">
+        <div class="grid-2">
+          <!-- DAILY REVENUE -->
+          <div class="card">
+            <div class="card-title">Daily Revenue Trajectory vs Cumulative Total</div>
+            <div class="card-subtitle">Daily intake velocity with cumulative progression curve</div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Transactions</th>
+                    <th>Daily Amount</th>
+                    <th>Cumulative Total</th>
+                  </tr>
+                </thead>
+                <tbody id="daily-table-body">
+                  <tr><td colspan="4" style="color: var(--muted);">Loading live data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- FLOOR YIELD -->
+          <div class="card">
+            <div class="card-title">Revenue Collected by Building Floor Deck</div>
+            <div class="card-subtitle">Earnings distribution across Level 1, 2, 3, and 4</div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Building Floor</th>
+                    <th>Transactions</th>
+                    <th>Gross Yield</th>
+                    <th>Contribution</th>
+                  </tr>
+                </thead>
+                <tbody id="floor-table-body">
+                  <tr><td colspan="4" style="color: var(--muted);">Loading live data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- SHIFTS TABLE -->
+          <div class="card">
+            <div class="card-title">Attendant Cash Receipts by Shift</div>
+            <div class="card-subtitle">Collections reconciled against individual staff accounts</div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Staff Member</th>
+                    <th>Assigned Deck</th>
+                    <th>Processed</th>
+                    <th>Cash Handled</th>
+                  </tr>
+                </thead>
+                <tbody id="shifts-table-body">
+                  <tr><td colspan="4" style="color: var(--muted);">Loading live data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- CHANNELS -->
+          <div class="card">
+            <div class="card-title">Channel Breakdown: Self-Service vs Booth</div>
+            <div class="card-subtitle">Intake split between automated barrier kiosk and attendant</div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Payment Intake Channel</th>
+                    <th>Amount Handled</th>
+                    <th>Share</th>
+                  </tr>
+                </thead>
+                <tbody id="channels-table-body">
+                  <tr><td colspan="3" style="color: var(--muted);">Loading live data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: PARKED VEHICLES BY LEVEL (CLASSIFIED TABLES) -->
+      <div id="occupancy-sec" class="dashboard-section">
+        <!-- SUMMARY OVERVIEW TABLE -->
+        <div class="card">
+          <div class="card-title">Building Deck Capacity Summary</div>
+          <div class="card-subtitle">Aggregate metrics across all 4 building decks.</div>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Building Deck</th>
+                  <th>Total Capacity</th>
+                  <th>Occupied Bays</th>
+                  <th>Available Bays</th>
+                  <th>Occupancy Rate</th>
+                </tr>
+              </thead>
+              <tbody id="occupancy-summary-body">
+                <tr><td colspan="5" style="color: var(--muted);">Loading live deck summary...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 4 SEPARATE TABLES FOR PARKED DRIVERS CLASSIFIED BY LEVEL -->
+        <div class="card">
+          <div class="card-title">Active Parked Vehicles Classified by Building Deck (30+ Sessions)</div>
+          <div class="card-subtitle">Discrete level-by-level tables showing live vehicles currently parked on each deck.</div>
+
+          <!-- LEVEL 1 TABLE -->
+          <div class="level-block">
+            <div class="level-header">
+              <span>Level 1 — Ground Deck</span>
+              <span class="level-meta">Bays G01 – G12</span>
+            </div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Session</th>
+                    <th>Plate Number</th>
+                    <th>Driver Name</th>
+                    <th>Contact</th>
+                    <th>Assigned Bay</th>
+                    <th>Entry Timestamp</th>
+                    <th>Stay Status</th>
+                  </tr>
+                </thead>
+                <tbody id="parked-level-1-body">
+                  <tr><td colspan="7" style="color: var(--muted);">Loading Level 1 vehicles...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- LEVEL 2 TABLE -->
+          <div class="level-block">
+            <div class="level-header">
+              <span>Level 2 — Mezzanine Floor</span>
+              <span class="level-meta">Bays M01 – M10</span>
+            </div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Session</th>
+                    <th>Plate Number</th>
+                    <th>Driver Name</th>
+                    <th>Contact</th>
+                    <th>Assigned Bay</th>
+                    <th>Entry Timestamp</th>
+                    <th>Stay Status</th>
+                  </tr>
+                </thead>
+                <tbody id="parked-level-2-body">
+                  <tr><td colspan="7" style="color: var(--muted);">Loading Level 2 vehicles...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- LEVEL 3 TABLE -->
+          <div class="level-block">
+            <div class="level-header">
+              <span>Level 3 — Upper Deck</span>
+              <span class="level-meta">Bays U01 – U10</span>
+            </div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Session</th>
+                    <th>Plate Number</th>
+                    <th>Driver Name</th>
+                    <th>Contact</th>
+                    <th>Assigned Bay</th>
+                    <th>Entry Timestamp</th>
+                    <th>Stay Status</th>
+                  </tr>
+                </thead>
+                <tbody id="parked-level-3-body">
+                  <tr><td colspan="7" style="color: var(--muted);">Loading Level 3 vehicles...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- LEVEL 4 TABLE -->
+          <div class="level-block">
+            <div class="level-header">
+              <span>Level 4 — Rooftop Deck</span>
+              <span class="level-meta">Bays R01 – R08</span>
+            </div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Session</th>
+                    <th>Plate Number</th>
+                    <th>Driver Name</th>
+                    <th>Contact</th>
+                    <th>Assigned Bay</th>
+                    <th>Entry Timestamp</th>
+                    <th>Stay Status</th>
+                  </tr>
+                </thead>
+                <tbody id="parked-level-4-body">
+                  <tr><td colspan="7" style="color: var(--muted);">Loading Level 4 vehicles...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SECTION 3: GRAPHICAL INSIGHTS -->
+      <div id="visuals-sec" class="dashboard-section">
+        <div class="card">
+          <div class="card-title">Executive Analytical Visualizations</div>
+          <div class="card-subtitle">Smooth, responsive interactive frontend charts powered by Chart.js</div>
+          <div class="charts-grid">
+            <!-- Chart 1: Bar Chart (Floor Deck Revenue Yield) -->
+            <div class="chart-panel">
+              <div class="chart-title">Floor Deck Revenue Yield</div>
+              <div class="chart-desc">Gross financial revenue collected per building floor deck (Bar Chart)</div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="deckRevenueChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 2: Doughnut / Pie Chart (Revenue by Collection Channel) -->
+            <div class="chart-panel">
+              <div class="chart-title">Revenue by Collection Channel</div>
+              <div class="chart-desc">Automated self-service machine vs attendant cash assistance (Pie/Doughnut Chart)</div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="channelsPieChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 3: Horizontal Stacked Bar Chart (Real-Time Deck Capacity Allocation) -->
+            <div class="chart-panel">
+              <div class="chart-title">Real-Time Deck Capacity Allocation</div>
+              <div class="chart-desc">Live bay occupancy vs available capacity across decks (Stacked Bar Chart)</div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="liveOccupancyChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 4: Multi-type Combo Bar & Line Chart (Daily Intake Velocity & Cumulative Trajectory) -->
+            <div class="chart-panel">
+              <div class="chart-title">Daily Intake Velocity & Cumulative Trajectory</div>
+              <div class="chart-desc">Daily intake receipts with cumulative growth trajectory (Bar & Line Chart)</div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="dailyTrendChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 4: PARKING HISTORY BY DATE & LEVEL -->
+      <div id="history-sec" class="dashboard-section">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
+            <div>
+              <div class="card-title">Historical Parking Log — Organised by Date & Level</div>
+              <div class="card-subtitle">Vehicle check-in and check-out logs organised by date and separated into individual building levels.</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--muted);">Filter Date:</span>
+              <select id="history-date-filter" onchange="filterHistoryDate(this.value)" style="padding: 9px 16px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 13.5px; font-weight: 700; color: var(--text); background: #ffffff; outline: none; cursor: pointer;">
+                <option value="2026-10-29">Today — 2026-10-29 (Live Active)</option>
+                <option value="2026-10-14">2026-10-14 (Completed)</option>
+                <option value="2026-10-13">2026-10-13 (Completed)</option>
+                <option value="2026-10-12">2026-10-12 (Completed)</option>
+                <option value="all">All Dates Combined</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quick Date Filter Buttons -->
+          <div id="history-date-buttons" style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
+            <button class="history-filter-btn active" onclick="setHistoryDate('2026-10-29', this)">Today (2026-10-29)</button>
+            <button class="history-filter-btn" onclick="setHistoryDate('2026-10-14', this)">2026-10-14</button>
+            <button class="history-filter-btn" onclick="setHistoryDate('2026-10-13', this)">2026-10-13</button>
+            <button class="history-filter-btn" onclick="setHistoryDate('2026-10-12', this)">2026-10-12</button>
+            <button class="history-filter-btn" onclick="setHistoryDate('all', this)">All Dates</button>
+          </div>
+
+          <!-- LEVEL 1 HISTORY -->
+          <div class="level-block" style="margin-bottom: 24px;">
+            <div class="level-header">
+              <span>Level 1 — Ground Deck</span>
+              <span class="level-meta">Bays G01 – G12 • <span id="hist-count-l1">0</span> Sessions</span>
+            </div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Session</th>
+                    <th>Date</th>
+                    <th>Plate Number</th>
+                    <th>Driver Name</th>
+                    <th>Contact</th>
+                    <th>Bay</th>
+                    <th>Entry Time</th>
+                    <th>Exit Time</th>
+                    <th>Duration</th>
+                    <th>Amount & Status</th>
+                  </tr>
+                </thead>
+                <tbody id="history-l1-body">
+                  <tr><td colspan="10" style="color: var(--muted);">Loading Level 1 history...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- LEVEL 2 HISTORY -->
+          <div class="level-block" style="margin-bottom: 24px;">
+            <div class="level-header">
+              <span>Level 2 — Mezzanine Floor</span>
+              <span class="level-meta">Bays M01 – M10 • <span id="hist-count-l2">0</span> Sessions</span>
+            </div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Session</th>
+                    <th>Date</th>
+                    <th>Plate Number</th>
+                    <th>Driver Name</th>
+                    <th>Contact</th>
+                    <th>Bay</th>
+                    <th>Entry Time</th>
+                    <th>Exit Time</th>
+                    <th>Duration</th>
+                    <th>Amount & Status</th>
+                  </tr>
+                </thead>
+                <tbody id="history-l2-body">
+                  <tr><td colspan="10" style="color: var(--muted);">Loading Level 2 history...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- LEVEL 3 HISTORY -->
+          <div class="level-block" style="margin-bottom: 24px;">
+            <div class="level-header">
+              <span>Level 3 — Upper Deck</span>
+              <span class="level-meta">Bays U01 – U10 • <span id="hist-count-l3">0</span> Sessions</span>
+            </div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Session</th>
+                    <th>Date</th>
+                    <th>Plate Number</th>
+                    <th>Driver Name</th>
+                    <th>Contact</th>
+                    <th>Bay</th>
+                    <th>Entry Time</th>
+                    <th>Exit Time</th>
+                    <th>Duration</th>
+                    <th>Amount & Status</th>
+                  </tr>
+                </thead>
+                <tbody id="history-l3-body">
+                  <tr><td colspan="10" style="color: var(--muted);">Loading Level 3 history...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- LEVEL 4 HISTORY -->
+          <div class="level-block" style="margin-bottom: 24px;">
+            <div class="level-header">
+              <span>Level 4 — Rooftop Deck</span>
+              <span class="level-meta">Bays R01 – R08 • <span id="hist-count-l4">0</span> Sessions</span>
+            </div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Session</th>
+                    <th>Date</th>
+                    <th>Plate Number</th>
+                    <th>Driver Name</th>
+                    <th>Contact</th>
+                    <th>Bay</th>
+                    <th>Entry Time</th>
+                    <th>Exit Time</th>
+                    <th>Duration</th>
+                    <th>Amount & Status</th>
+                  </tr>
+                </thead>
+                <tbody id="history-l4-body">
+                  <tr><td colspan="10" style="color: var(--muted);">Loading Level 4 history...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    let allHistoryRecords = [];
+    window.dashboardCharts = {};
+
+    function switchSection(secId, btn) {
+      document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.dashboard-section').forEach(sec => sec.classList.remove('active'));
+
+      if (btn) {
+        btn.classList.add('active');
+      } else if (window.event && window.event.currentTarget) {
+        window.event.currentTarget.classList.add('active');
+      }
+      const target = document.getElementById(secId);
+      if (target) {
+        target.classList.add('active');
+      }
+
+      if (secId === 'visuals-sec') {
+        setTimeout(() => {
+          Object.values(window.dashboardCharts || {}).forEach(c => {
+            if (c && typeof c.resize === 'function') c.resize();
+          });
+        }, 50);
+      }
+    }
+
+    function setHistoryDate(dateStr, btn) {
+      document.getElementById('history-date-filter').value = dateStr;
+      document.querySelectorAll('.history-filter-btn').forEach(b => b.classList.remove('active'));
+      if (btn) {
+        btn.classList.add('active');
+      } else {
+        document.querySelectorAll('.history-filter-btn').forEach(b => {
+          if (b.textContent.includes(dateStr) || (dateStr === 'all' && b.textContent === 'All Dates')) {
+            b.classList.add('active');
+          }
+        });
+      }
+      filterHistoryDate(dateStr);
+    }
+
+    function filterHistoryDate(dateStr) {
+      // sync buttons
+      document.querySelectorAll('.history-filter-btn').forEach(b => {
+        b.classList.remove('active');
+        if (dateStr === 'all' && b.textContent === 'All Dates') b.classList.add('active');
+        else if (dateStr !== 'all' && b.textContent.includes(dateStr)) b.classList.add('active');
+      });
+
+      const filtered = (dateStr === 'all') 
+        ? allHistoryRecords 
+        : allHistoryRecords.filter(r => r.date === dateStr);
+
+      renderHistoryTables(filtered);
+    }
+
+    function renderHistoryTables(records) {
+      const l1Body = document.getElementById('history-l1-body');
+      const l2Body = document.getElementById('history-l2-body');
+      const l3Body = document.getElementById('history-l3-body');
+      const l4Body = document.getElementById('history-l4-body');
+
+      l1Body.innerHTML = '';
+      l2Body.innerHTML = '';
+      l3Body.innerHTML = '';
+      l4Body.innerHTML = '';
+
+      let c1 = 0, c2 = 0, c3 = 0, c4 = 0;
+
+      records.forEach(r => {
+        const isOverstay = r.status.includes('Overstay');
+        const isActive = r.exit_time === 'Still Parked';
+        const statusColor = isOverstay ? '#dc2626' : (isActive ? '#0284c7' : '#059669');
+        const rowHtml = `
+          <tr>
+            <td>#${r.session_id}</td>
+            <td><strong>${r.date}</strong></td>
+            <td><strong style="font-family: monospace; font-size: 13.5px;">${r.plate_number}</strong></td>
+            <td>${r.driver}</td>
+            <td style="font-family: monospace;">${r.phone}</td>
+            <td><strong>${r.space_number}</strong></td>
+            <td>${r.entry_time.split(' ')[1] || r.entry_time}</td>
+            <td>${r.exit_time.includes(':') ? r.exit_time.split(' ')[1] : r.exit_time}</td>
+            <td>${r.duration}</td>
+            <td>
+              <span style="color: ${statusColor}; font-weight: 700;">${r.status}</span>
+              <div style="font-size: 11.5px; color: var(--muted);">${r.amount} (${r.payment_method})</div>
+            </td>
+          </tr>
+        `;
+
+        if (r.floor_id === 1 || r.floor_name.includes('Level 1') || r.floor_name.includes('Ground')) {
+          l1Body.innerHTML += rowHtml;
+          c1++;
+        } else if (r.floor_id === 2 || r.floor_name.includes('Level 2') || r.floor_name.includes('Mezzanine')) {
+          l2Body.innerHTML += rowHtml;
+          c2++;
+        } else if (r.floor_id === 3 || r.floor_name.includes('Level 3') || r.floor_name.includes('Upper')) {
+          l3Body.innerHTML += rowHtml;
+          c3++;
+        } else if (r.floor_id === 4 || r.floor_name.includes('Level 4') || r.floor_name.includes('Rooftop')) {
+          l4Body.innerHTML += rowHtml;
+          c4++;
+        }
+      });
+
+      document.getElementById('hist-count-l1').textContent = c1;
+      document.getElementById('hist-count-l2').textContent = c2;
+      document.getElementById('hist-count-l3').textContent = c3;
+      document.getElementById('hist-count-l4').textContent = c4;
+
+      if (!c1) l1Body.innerHTML = '<tr><td colspan="10" style="color: var(--muted); padding: 16px;">No parking sessions on Level 1 for the selected date.</td></tr>';
+      if (!c2) l2Body.innerHTML = '<tr><td colspan="10" style="color: var(--muted); padding: 16px;">No parking sessions on Level 2 for the selected date.</td></tr>';
+      if (!c3) l3Body.innerHTML = '<tr><td colspan="10" style="color: var(--muted); padding: 16px;">No parking sessions on Level 3 for the selected date.</td></tr>';
+      if (!c4) l4Body.innerHTML = '<tr><td colspan="10" style="color: var(--muted); padding: 16px;">No parking sessions on Level 4 for the selected date.</td></tr>';
+    }
+
+    async function loadDashboardData() {
+      try {
+        const revRes = await fetch('/api/revenue');
+        const revData = await revRes.json();
+
+        document.getElementById('kpi-total').textContent = Number(revData.total_revenue).toLocaleString() + ' UGX';
+        
+        const dailyBody = document.getElementById('daily-table-body');
+        dailyBody.innerHTML = '';
+        revData.daily.forEach(d => {
+          dailyBody.innerHTML += `
+            <tr>
+              <td><strong>${d.date}</strong></td>
+              <td>${d.payments} txns</td>
+              <td>${Number(d.amount).toLocaleString()} UGX</td>
+              <td><strong>${Number(d.cumulative).toLocaleString()} UGX</strong></td>
+            </tr>
+          `;
+        });
+
+        const floorBody = document.getElementById('floor-table-body');
+        floorBody.innerHTML = '';
+        revData.floors.forEach(f => {
+          floorBody.innerHTML += `
+            <tr>
+              <td><strong>${f.floor}</strong></td>
+              <td>${f.payments} txns</td>
+              <td><strong>${Number(f.revenue).toLocaleString()} UGX</strong></td>
+              <td><strong>${f.share}</strong></td>
+            </tr>
+          `;
+        });
+
+        const shiftsRes = await fetch('/api/shifts');
+        const shiftsData = await shiftsRes.json();
+
+        const shiftsBody = document.getElementById('shifts-table-body');
+        shiftsBody.innerHTML = '';
+        shiftsData.staff.forEach(s => {
+          shiftsBody.innerHTML += `
+            <tr>
+              <td><strong>${s.staff}</strong></td>
+              <td>${s.floor}</td>
+              <td>${s.payments} payments</td>
+              <td><strong>${Number(s.collected).toLocaleString()} UGX</strong></td>
+            </tr>
+          `;
+        });
+
+        const channelsBody = document.getElementById('channels-table-body');
+        channelsBody.innerHTML = '';
+        shiftsData.channels.forEach(c => {
+          channelsBody.innerHTML += `
+            <tr>
+              <td><strong>${c.channel}</strong></td>
+              <td><strong>${Number(c.amount).toLocaleString()} UGX</strong></td>
+              <td><strong>${c.pct}%</strong></td>
+            </tr>
+          `;
+        });
+
+        const occRes = await fetch('/api/occupancy');
+        const occData = await occRes.json();
+
+        // Populate Summary Table
+        const occSummaryBody = document.getElementById('occupancy-summary-body');
+        occSummaryBody.innerHTML = '';
+        occData.floors.forEach(fl => {
+          occSummaryBody.innerHTML += `
+            <tr>
+              <td><strong>${fl.name}</strong></td>
+              <td>${fl.capacity} bays</td>
+              <td>${fl.occupied} bays</td>
+              <td>${fl.available} bays</td>
+              <td><strong>${fl.rate}%</strong></td>
+            </tr>
+          `;
+        });
+
+        // Populate 4 Classified Level Tables for Admin
+        const l1Body = document.getElementById('parked-level-1-body');
+        const l2Body = document.getElementById('parked-level-2-body');
+        const l3Body = document.getElementById('parked-level-3-body');
+        const l4Body = document.getElementById('parked-level-4-body');
+
+        l1Body.innerHTML = '';
+        l2Body.innerHTML = '';
+        l3Body.innerHTML = '';
+        l4Body.innerHTML = '';
+
+        occData.parked.forEach(p => {
+          const statusColor = p.overstay ? '#dc2626' : '#0284c7';
+          const penaltyInfo = p.overstay ? `Overstay (+${Number(p.overstay_penalty).toLocaleString()} UGX)` : 'Active';
+          const rowHtml = `
+            <tr>
+              <td>#${p.session_id}</td>
+              <td><strong>${p.plate_number}</strong></td>
+              <td>${p.driver}</td>
+              <td style="font-family: monospace;">${p.phone}</td>
+              <td><strong>${p.space}</strong></td>
+              <td>${p.entry_time}</td>
+              <td style="color: ${statusColor}; font-weight: 700;">${penaltyInfo} (${p.duration})</td>
+            </tr>
+          `;
+
+          if (p.floor.includes('Ground') || p.floor.includes('Level 1')) {
+            l1Body.innerHTML += rowHtml;
+          } else if (p.floor.includes('Mezzanine') || p.floor.includes('Level 2')) {
+            l2Body.innerHTML += rowHtml;
+          } else if (p.floor.includes('Upper') || p.floor.includes('Level 3')) {
+            l3Body.innerHTML += rowHtml;
+          } else if (p.floor.includes('Rooftop') || p.floor.includes('Level 4')) {
+            l4Body.innerHTML += rowHtml;
+          }
+        });
+
+        if (!l1Body.innerHTML) l1Body.innerHTML = '<tr><td colspan="7" style="color: var(--muted);">No vehicles currently parked on Ground Deck.</td></tr>';
+        if (!l2Body.innerHTML) l2Body.innerHTML = '<tr><td colspan="7" style="color: var(--muted);">No vehicles currently parked on Mezzanine Floor.</td></tr>';
+        if (!l3Body.innerHTML) l3Body.innerHTML = '<tr><td colspan="7" style="color: var(--muted);">No vehicles currently parked on Upper Deck.</td></tr>';
+        if (!l4Body.innerHTML) l4Body.innerHTML = '<tr><td colspan="7" style="color: var(--muted);">No vehicles currently parked on Rooftop Deck.</td></tr>';
+
+        // Load Parking History
+        const histRes = await fetch('/api/history?date=all');
+        const histData = await histRes.json();
+        allHistoryRecords = histData.records || [];
+        filterHistoryDate('2026-10-29');
+
+        // Render Interactive Frontend Charts via Chart.js
+        initOrUpdateCharts(revData, occData, shiftsData);
+
+      } catch (err) {
+        console.error('Failed to load parking analytics:', err);
+      }
+    }
+
+    function initOrUpdateCharts(revData, occData, shiftsData) {
+      if (typeof Chart === 'undefined') {
+        console.warn('Chart.js is not loaded.');
+        return;
+      }
+
+      Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+      Chart.defaults.color = '#64748b';
+
+      // 1. Chart 1: Floor Deck Revenue Yield (Bar Chart)
+      const deckCanvas = document.getElementById('deckRevenueChart');
+      if (deckCanvas && revData && revData.floors) {
+        if (window.dashboardCharts['deckRevenue']) {
+          window.dashboardCharts['deckRevenue'].destroy();
+        }
+        const deckLabels = revData.floors.map(f => f.floor.split(' — ')[0]);
+        const deckRevenues = revData.floors.map(f => f.revenue);
+
+        window.dashboardCharts['deckRevenue'] = new Chart(deckCanvas, {
+          type: 'bar',
+          data: {
+            labels: deckLabels,
+            datasets: [{
+              label: 'Gross Revenue (UGX)',
+              data: deckRevenues,
+              backgroundColor: 'rgba(2, 132, 199, 0.85)',
+              borderColor: '#0284c7',
+              borderWidth: 1.5,
+              borderRadius: 8,
+              hoverBackgroundColor: 'rgba(14, 165, 233, 1)'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    return ' ' + Number(ctx.parsed.y).toLocaleString() + ' UGX';
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: '#f1f5f9' },
+                ticks: {
+                  callback: function(val) {
+                    return Number(val).toLocaleString() + ' UGX';
+                  }
+                }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { font: { weight: '600' } }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Chart 2: Revenue by Collection Channel (Doughnut / Pie Chart)
+      const channelCanvas = document.getElementById('channelsPieChart');
+      if (channelCanvas && shiftsData && shiftsData.channels) {
+        if (window.dashboardCharts['channelsPie']) {
+          window.dashboardCharts['channelsPie'].destroy();
+        }
+        const chLabels = shiftsData.channels.map(c => 
+          c.channel.includes('Self-Service') ? 'Automated Machine (Card/MoMo)' : 'Attendant Booth (Cash)'
+        );
+        const chData = shiftsData.channels.map(c => c.amount);
+
+        window.dashboardCharts['channelsPie'] = new Chart(channelCanvas, {
+          type: 'doughnut',
+          data: {
+            labels: chLabels,
+            datasets: [{
+              data: chData,
+              backgroundColor: [
+                'rgba(14, 165, 233, 0.85)',
+                'rgba(99, 102, 241, 0.85)'
+              ],
+              borderColor: '#ffffff',
+              borderWidth: 3,
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '62%',
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  boxWidth: 12,
+                  padding: 16,
+                  font: { weight: '600', size: 12 }
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                    const pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                    return ' ' + Number(ctx.parsed).toLocaleString() + ' UGX (' + pct + '%)';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 3. Chart 3: Real-Time Deck Capacity Allocation (Stacked Horizontal Bar Chart)
+      const occCanvas = document.getElementById('liveOccupancyChart');
+      if (occCanvas && occData && occData.floors) {
+        if (window.dashboardCharts['liveOccupancy']) {
+          window.dashboardCharts['liveOccupancy'].destroy();
+        }
+        const floorLabels = occData.floors.map(f => f.name.split(' — ')[0]);
+        const occupiedData = occData.floors.map(f => f.occupied);
+        const availableData = occData.floors.map(f => f.available);
+
+        window.dashboardCharts['liveOccupancy'] = new Chart(occCanvas, {
+          type: 'bar',
+          data: {
+            labels: floorLabels,
+            datasets: [
+              {
+                label: 'Occupied Bays',
+                data: occupiedData,
+                backgroundColor: 'rgba(2, 132, 199, 0.85)',
+                borderColor: '#0284c7',
+                borderWidth: 1,
+                borderRadius: 6
+              },
+              {
+                label: 'Available Bays',
+                data: availableData,
+                backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                borderColor: '#059669',
+                borderWidth: 1,
+                borderRadius: 6
+              }
+            ]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 12, padding: 14, font: { weight: '600' } }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    return ' ' + ctx.dataset.label + ': ' + ctx.parsed.x + ' bay(s)';
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                stacked: true,
+                grid: { color: '#f1f5f9' },
+                ticks: { stepSize: 2 }
+              },
+              y: {
+                stacked: true,
+                grid: { display: false },
+                ticks: { font: { weight: '600' } }
+              }
+            }
+          }
+        });
+      }
+
+      // 4. Chart 4: Daily Intake Velocity & Cumulative Trajectory (Combo Bar & Line)
+      const trendCanvas = document.getElementById('dailyTrendChart');
+      if (trendCanvas && revData && revData.daily) {
+        if (window.dashboardCharts['dailyTrend']) {
+          window.dashboardCharts['dailyTrend'].destroy();
+        }
+        const dates = revData.daily.map(d => d.date);
+        const dailyAmounts = revData.daily.map(d => d.amount);
+        const cumulativeAmounts = revData.daily.map(d => d.cumulative);
+
+        window.dashboardCharts['dailyTrend'] = new Chart(trendCanvas, {
+          type: 'bar',
+          data: {
+            labels: dates,
+            datasets: [
+              {
+                type: 'line',
+                label: 'Cumulative Total (UGX)',
+                data: cumulativeAmounts,
+                borderColor: '#7c3aed',
+                backgroundColor: 'rgba(124, 58, 237, 0.08)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.35,
+                pointBackgroundColor: '#7c3aed',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                yAxisID: 'y'
+              },
+              {
+                type: 'bar',
+                label: 'Daily Intake (UGX)',
+                data: dailyAmounts,
+                backgroundColor: 'rgba(56, 189, 248, 0.75)',
+                borderColor: '#0284c7',
+                borderWidth: 1,
+                borderRadius: 6,
+                yAxisID: 'y'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 12, padding: 14, font: { weight: '600' } }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    return ' ' + ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString() + ' UGX';
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: '#f1f5f9' },
+                ticks: {
+                  callback: function(val) {
+                    return Number(val).toLocaleString() + ' UGX';
+                  }
+                }
+              },
+              x: {
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDashboardData);
+  </script>
+</body>
+</html>

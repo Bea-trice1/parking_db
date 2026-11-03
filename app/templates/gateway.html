@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Parking Management System — Portal Gateway</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --border: #E2E8F0;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --success: #059669;
+      --purple: #7C3AED;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .header-box {
+      text-align: center;
+      margin-bottom: 36px;
+      max-width: 650px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      max-width: 1050px;
+      width: 100%;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #CBD5E1;
+    }
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .icon-driver { background: #ECFDF5; color: var(--success); }
+    .icon-staff { background: #EFF6FF; color: var(--primary); }
+    .icon-admin { background: #F5F3FF; color: var(--purple); }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .card-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+      flex-grow: 1;
+    }
+    .btn {
+      display: block;
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.15s ease;
+    }
+    .btn-driver { background: var(--success); color: white; }
+    .btn-driver:hover { background: #047857; }
+    .btn-staff { background: var(--primary); color: white; }
+    .btn-staff:hover { background: var(--primary-hover); }
+    .btn-admin { background: var(--purple); color: white; }
+    .btn-admin:hover { background: #6D28D9; }
+
+    footer {
+      margin-top: 40px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+    @media (max-width: 850px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-box">
+    <h1>Multi-Level Parking Management System</h1>
+    <p class="subtitle">Select your entry portal below based on your operational role.</p>
+  </div>
+
+  <div class="grid">
+    <!-- DOOR 1: DRIVER KIOSK -->
+    <div class="card">
+      <div>
+        <div class="icon-box icon-driver">🚗</div>
+        <div class="card-title">Driver Self-Service Kiosk</div>
+        <div class="card-desc">
+          <strong>No password required.</strong> Enter your license plate to allocate a floor bay upon arrival, or lookup your parked spot and settle your amount due.
+        </div>
+      </div>
+      <a href="/driver" class="btn btn-driver">Open Driver Kiosk →</a>
+    </div>
+
+    <!-- DOOR 2: ATTENDANT TERMINAL -->
+    <div class="card">
+      <div>
+        <div class="icon-box icon-staff">🛡️</div>
+        <div class="card-title">Attendant Booth Terminal</div>
+        <div class="card-desc">
+          Individual attendant sign in. Monitor bays specifically assigned to your floor level, track active vehicles, overstays, and shift cash collections.
+        </div>
+      </div>
+      <a href="/login" class="btn btn-staff">Attendant Sign In →</a>
+    </div>
+
+    <!-- DOOR 3: MANAGER DASHBOARD -->
+    <div class="card">
+      <div>
+        <div class="icon-box icon-admin">📊</div>
+        <div class="card-title">General Manager Portal</div>
+        <div class="card-desc">
+          Executive analytics: Total vs Daily Revenue, revenue across all floor decks, automated machine vs staff cash collections, and graphical insights.
+        </div>
+      </div>
+      <a href="/login" class="btn btn-admin">Executive Sign In →</a>
+    </div>
+  </div>
+
+  <footer>
+    Multi-Floor Building Infrastructure • Kampala Central Complex • Level 1, 2, 3, & 4 Decks
+  </footer>
+
+</body>
+</html>

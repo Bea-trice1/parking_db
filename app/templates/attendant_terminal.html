@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attendant Terminal — Parking Operations</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --canvas: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --primary: #0284c7;
+      --text: #0f172a;
+      --muted: #64748b;
+      --vacant-bg: #ecfdf5;
+      --vacant-border: #a7f3d0;
+      --vacant-text: #065f46;
+      --occupied-bg: #eff6ff;
+      --occupied-border: #bfdbfe;
+      --occupied-text: #1e40af;
+      --oos-bg: #f1f5f9;
+      --oos-border: #cbd5e1;
+      --oos-text: #475569;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--canvas);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    aside {
+      width: 260px;
+      background: #ffffff;
+      border-right: 1px solid var(--border);
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .brand-title { font-weight: 800; font-size: 15px; margin-bottom: 4px; }
+    .brand-assigned { font-size: 12px; color: var(--primary); font-weight: 700; margin-bottom: 22px; }
+
+    .nav-btn {
+      width: 100%;
+      text-align: left;
+      padding: 11px 14px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 4px;
+      font-family: inherit;
+    }
+    .nav-btn:hover { background: #f1f5f9; color: var(--text); }
+    .nav-btn.active { background: #e0f2fe; color: var(--primary); font-weight: 700; }
+    .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+
+    .viewport {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .operator-label { font-size: 13.5px; color: var(--text); font-weight: 500; }
+    .operator-name { font-weight: 800; color: var(--primary); }
+    .signout-link { color: #dc2626; text-decoration: none; font-weight: 600; margin-left: 14px; font-size: 13px; }
+    .signout-link:hover { text-decoration: underline; }
+
+    main { padding: 28px 32px; max-width: 1200px; width: 100%; }
+
+    /* Blue Overstay Alert Box */
+    .overstay-box {
+      background: #f0f7ff;
+      border: 1.5px solid #bae6fd;
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 26px;
+    }
+    .overstay-header { font-weight: 800; font-size: 15px; color: #0369a1; margin-bottom: 6px; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+    .stat-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .stat-label { font-size: 11.5px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .stat-num { font-size: 22px; font-weight: 800; color: var(--text); margin-top: 6px; }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card-title { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+    .card-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+
+    .bay-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .bay-item {
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      border-width: 1px;
+      border-style: solid;
+    }
+    .bay-vacant {
+      background: var(--vacant-bg);
+      border-color: var(--vacant-border);
+      color: var(--vacant-text);
+    }
+    .bay-occupied {
+      background: var(--occupied-bg);
+      border-color: var(--occupied-border);
+      color: var(--occupied-text);
+    }
+    .bay-oos {
+      background: var(--oos-bg);
+      border-color: var(--oos-border);
+      color: var(--oos-text);
+    }
+    .bay-code { font-size: 16px; font-weight: 800; }
+    .bay-type { font-size: 10.5px; opacity: 0.8; margin-top: 2px; }
+    .bay-status-text { font-size: 11px; font-weight: 700; margin-top: 6px; text-transform: capitalize; }
+    .bay-plate { font-size: 11px; font-weight: 800; margin-top: 4px; color: #1e40af; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    th {
+      text-align: left;
+      padding: 11px 14px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      border-bottom: 1.5px solid var(--border);
+      font-weight: 700;
+    }
+    td { padding: 13px 14px; border-bottom: 1px solid #f1f5f9; color: var(--text); }
+    tbody tr:hover { background: #f8fafc; }
+  </style>
+</head>
+<body>
+
+  <!-- LEFT SIDEBAR -->
+  <aside>
+    <div class="brand-title">🛡️ Attendant Booth</div>
+    <div class="brand-assigned">{{ floor_name }}</div>
+
+    <button class="nav-btn active" onclick="switchPane('bays-pane', this)">Floor Bay Availability</button>
+    <button class="nav-btn" onclick="switchPane('occupancy-pane', this)">Live Bay Occupancy Table</button>
+    <button class="nav-btn" onclick="switchPane('drivers-pane', this)">Parked Vehicles (This Deck)</button>
+    <button class="nav-btn" onclick="switchPane('reservations-pane', this)">Floor Reservations</button>
+
+    <div class="sidebar-footer">
+      <a href="/" class="nav-btn" style="color: var(--muted);">Switch Gateway</a>
+    </div>
+  </aside>
+
+  <!-- VIEWPORT -->
+  <div class="viewport">
+    <header>
+      <div class="operator-label">
+        Logged in Attendant: <span class="operator-name">{{ attendant_name }}</span> ({{ floor_name }})
+      </div>
+      <div>
+        <a href="/logout" class="signout-link">Sign Out</a>
+      </div>
+    </header>
+
+    <main>
+      <!-- BLUE OVERSTAY ENFORCEMENT BOX (WITH 5,000 UGX PER EXTRA HOUR SURCHARGE) -->
+      {% if overstayers %}
+      <div class="overstay-box">
+        <div class="overstay-header">Overstay Enforcement: {{ overstayers|length }} Vehicle(s) Parked Beyond 8-Hour Limit on {{ floor_name }}</div>
+        <p style="font-size: 13px; color: #075985; margin-bottom: 12px;">
+          Enforcement policy applies: <strong>5,000 UGX per extra hour</strong> exceeded beyond the 8-hour maximum stay:
+        </p>
+        <div style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 10px; padding: 12px 16px;">
+          {% for o in overstayers %}
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-size: 13px;">
+            <span><strong>{{ o.plate_number }}</strong> — {{ o.driver }} (Tel: {{ o.phone }}) in Bay {{ o.space_number }}</span>
+            <span style="font-weight: 700; color: #0284c7;">
+              {{ o.duration }} ({{ o.extra_hours }}h overstay) • Surcharge: +{{ "{:,}".format(o.overstay_penalty) }} UGX
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- TOP METRIC CARDS (CLEANED - REMOVED "EXCLUSIVE TO") -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Shift Cash Collected</div>
+          <div class="stat-num">{{ cash_collected }} UGX</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Vehicles on Your Floor</div>
+          <div class="stat-num">{{ parked|length }} Vehicles</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Floor Reservations</div>
+          <div class="stat-num">{{ reservations|length }} Bookings</div>
+        </div>
+      </div>
+
+      <!-- PANE 1: VISUAL BAY GRID (SCOPED TO THIS ATTENDANT'S FLOOR) -->
+      <div id="bays-pane" class="tab-pane active">
+        <div class="card">
+          <div class="card-title">{{ floor_name }} — Real-Time Bay Availability Grid</div>
+          <div class="card-sub">Visual status for your assigned floor: <strong>Vacant bays in light green</strong>, <strong>Occupied bays in soft blue</strong>, Out-of-Service in grey.</div>
+
+          <div class="bay-grid">
+            {% for s in spaces %}
+            <div class="bay-item {% if s.status == 'Vacant' %}bay-vacant{% elif s.status == 'Occupied' %}bay-occupied{% else %}bay-oos{% endif %}">
+              <div class="bay-code">{{ s.space_number }}</div>
+              <div class="bay-type">{{ s.space_type }}</div>
+              <div class="bay-status-text">{{ s.status }}</div>
+              {% if s.occupant_plate %}
+              <div class="bay-plate">{{ s.occupant_plate }}</div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 2: LIVE OCCUPANCY PER BAY QUERY TABLE (WITH NUMBER PLATES) -->
+      <div id="occupancy-pane" class="tab-pane">
+        <div class="card">
+          <div class="card-title">{{ floor_name }} — Live Bay Occupancy Table</div>
+          <div class="card-sub">Bay-by-bay status showing the exact license plate number occupying each bay.</div>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bay Number</th>
+                  <th>Bay Classification</th>
+                  <th>Occupancy Status</th>
+                  <th>Current Occupant Plate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in spaces %}
+                <tr>
+                  <td><strong>{{ s.space_number }}</strong></td>
+                  <td>{{ s.space_type }}</td>
+                  <td>
+                    {% if s.status == 'Vacant' %}
+                    <span style="color: #065f46; font-weight: 700;">Vacant</span>
+                    {% elif s.status == 'Occupied' %}
+                    <span style="color: #1e40af; font-weight: 700;">Occupied</span>
+                    {% else %}
+                    <span style="color: #64748b; text-decoration: line-through;">Out-of-Service</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if s.occupant_plate %}
+                    <strong style="color: #0284c7; font-family: monospace; font-size: 14px;">{{ s.occupant_plate }}</strong>
+                    {% else %}
+                    <span style="color: var(--muted);">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 3: PARKED VEHICLES ON THIS DECK (WITH 5,000 UGX EXTRA HOUR OVERSTAY SURCHARGE) -->
+      <div id="drivers-pane" class="tab-pane">
+        <div class="card">
+          <div class="card-title">Vehicles Parked on {{ floor_name }} ({{ parked|length }} Active Drivers)</div>
+          <div class="card-sub">Active parked vehicles currently located on your assigned deck.</div>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Session</th>
+                  <th>Plate Number</th>
+                  <th>Driver Name</th>
+                  <th>Phone Number</th>
+                  <th>Bay</th>
+                  <th>Entry Timestamp</th>
+                  <th>Stay Duration</th>
+                  <th>Status & Surcharge</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in parked %}
+                <tr>
+                  <td>#{{ p.session_id }}</td>
+                  <td><strong style="font-family: monospace; font-size: 14px;">{{ p.plate_number }}</strong></td>
+                  <td>{{ p.driver }}</td>
+                  <td style="font-family: monospace;">{{ p.phone }}</td>
+                  <td><strong>{{ p.space_number }}</strong></td>
+                  <td>{{ p.entry_time }}</td>
+                  <td>{{ p.duration }}</td>
+                  <td>
+                    {% if p.overstay %}
+                    <span style="color: #dc2626; font-weight: 700;">Overstay (+{{ "{:,}".format(p.overstay_penalty) }} UGX)</span>
+                    {% else %}
+                    <span style="color: #0284c7; font-weight: 600;">Active</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 4: RESERVATIONS STRICTLY FOR THIS FLOOR LEVEL -->
+      <div id="reservations-pane" class="tab-pane">
+        <div class="card">
+          <div class="card-title">Reservations for {{ floor_name }}</div>
+          <div class="card-sub">Advance bookings designated specifically for your floor bays.</div>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Booking ID</th>
+                  <th>Driver</th>
+                  <th>Designated Bay</th>
+                  <th>Start Time</th>
+                  <th>End Time</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if reservations %}
+                  {% for r in reservations %}
+                  <tr>
+                    <td>#{{ r.reservation_id }}</td>
+                    <td><strong>{{ r.driver }}</strong></td>
+                    <td><strong>{{ r.space }}</strong></td>
+                    <td>{{ r.start }}</td>
+                    <td>{{ r.end }}</td>
+                    <td><strong>{{ r.status }}</strong></td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="6" style="color: var(--muted); padding: 18px;">No active reservations for {{ floor_name }} today.</td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    function switchPane(paneId, btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+      if (btn) {
+        btn.classList.add('active');
+      } else if (window.event && window.event.currentTarget) {
+        window.event.currentTarget.classList.add('active');
+      }
+      const target = document.getElementById(paneId);
+      if (target) {
+        target.classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>
