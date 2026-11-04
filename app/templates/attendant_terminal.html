@@ -178,7 +178,6 @@
     <div class="brand-assigned">{{ floor_name }}</div>
 
     <button class="nav-btn active" onclick="switchPane('bays-pane', this)">Floor Bay Availability</button>
-    <button class="nav-btn" onclick="switchPane('occupancy-pane', this)">Live Bay Occupancy Table</button>
     <button class="nav-btn" onclick="switchPane('drivers-pane', this)">Parked Vehicles (This Deck)</button>
     <button class="nav-btn" onclick="switchPane('reservations-pane', this)">Floor Reservations</button>
 
@@ -256,51 +255,7 @@
         </div>
       </div>
 
-      <!-- PANE 2: LIVE OCCUPANCY PER BAY QUERY TABLE (WITH NUMBER PLATES) -->
-      <div id="occupancy-pane" class="tab-pane">
-        <div class="card">
-          <div class="card-title">{{ floor_name }} — Live Bay Occupancy Table</div>
-          <div class="card-sub">Bay-by-bay status showing the exact license plate number occupying each bay.</div>
-          <div style="overflow-x: auto;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Bay Number</th>
-                  <th>Bay Classification</th>
-                  <th>Occupancy Status</th>
-                  <th>Current Occupant Plate</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for s in spaces %}
-                <tr>
-                  <td><strong>{{ s.space_number }}</strong></td>
-                  <td>{{ s.space_type }}</td>
-                  <td>
-                    {% if s.status == 'Vacant' %}
-                    <span style="color: #065f46; font-weight: 700;">Vacant</span>
-                    {% elif s.status == 'Occupied' %}
-                    <span style="color: #1e40af; font-weight: 700;">Occupied</span>
-                    {% else %}
-                    <span style="color: #64748b; text-decoration: line-through;">Out-of-Service</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if s.occupant_plate %}
-                    <strong style="color: #0284c7; font-family: monospace; font-size: 14px;">{{ s.occupant_plate }}</strong>
-                    {% else %}
-                    <span style="color: var(--muted);">—</span>
-                    {% endif %}
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- PANE 3: PARKED VEHICLES ON THIS DECK (WITH 5,000 UGX EXTRA HOUR OVERSTAY SURCHARGE) -->
+      <!-- PANE 2: PARKED VEHICLES ON THIS DECK (WITH 5,000 UGX EXTRA HOUR OVERSTAY SURCHARGE) -->
       <div id="drivers-pane" class="tab-pane">
         <div class="card">
           <div class="card-title">Vehicles Parked on {{ floor_name }} ({{ parked|length }} Active Drivers)</div>

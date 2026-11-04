@@ -416,7 +416,11 @@ def attendant_terminal():
 def manager_dashboard():
     if session.get('role') != 'manager':
         return redirect(url_for('login_page'))
-    return render_template('manager_dashboard.html')
+    return render_template('manager_dashboard.html',
+                           level1_spaces=[s for s in SPACES_40 if s['lot_id'] == 1],
+                           level2_spaces=[s for s in SPACES_40 if s['lot_id'] == 2],
+                           level3_spaces=[s for s in SPACES_40 if s['lot_id'] == 3],
+                           level4_spaces=[s for s in SPACES_40 if s['lot_id'] == 4])
 
 @app.route('/api/revenue')
 def api_revenue():

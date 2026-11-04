@@ -22,7 +22,49 @@
       --muted: #64748b;
       --radius-card: 16px;
       --shadow-float: 0 4px 14px rgba(56, 189, 248, 0.08);
+      --vacant-bg: #ecfdf5;
+      --vacant-border: #a7f3d0;
+      --vacant-text: #065f46;
+      --occupied-bg: #eff6ff;
+      --occupied-border: #bfdbfe;
+      --occupied-text: #1e40af;
+      --oos-bg: #f1f5f9;
+      --oos-border: #cbd5e1;
+      --oos-text: #475569;
     }
+
+    .bay-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .bay-item {
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      border-width: 1px;
+      border-style: solid;
+    }
+    .bay-vacant {
+      background: var(--vacant-bg);
+      border-color: var(--vacant-border);
+      color: var(--vacant-text);
+    }
+    .bay-occupied {
+      background: var(--occupied-bg);
+      border-color: var(--occupied-border);
+      color: var(--occupied-text);
+    }
+    .bay-oos {
+      background: var(--oos-bg);
+      border-color: var(--oos-border);
+      color: var(--oos-text);
+    }
+    .bay-code { font-size: 16px; font-weight: 800; }
+    .bay-type { font-size: 10.5px; opacity: 0.8; margin-top: 2px; }
+    .bay-status-text { font-size: 11px; font-weight: 700; margin-top: 6px; text-transform: capitalize; }
+    .bay-plate { font-size: 11px; font-weight: 800; margin-top: 4px; color: #1e40af; }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -288,6 +330,9 @@
     <button class="sidebar-btn active" onclick="switchSection('revenue-sec', this)">
       <span>💰</span> Revenue Analytics
     </button>
+    <button class="sidebar-btn" onclick="switchSection('bay-availability-sec', this)">
+      <span>🅿️</span> Floor Bay Availability
+    </button>
     <button class="sidebar-btn" onclick="switchSection('occupancy-sec', this)">
       <span>🚗</span> Parked Vehicles by Level
     </button>
@@ -433,30 +478,97 @@
         </div>
       </div>
 
+      <!-- SECTION: FLOOR BAY AVAILABILITY (ALL 4 LEVELS) -->
+      <div id="bay-availability-sec" class="dashboard-section">
+        <div class="card">
+          <div class="card-title">Multi-Deck Floor Bay Availability</div>
+          <div class="card-subtitle">Real-time bay status for each facility level: Vacant bays in green, Occupied bays in blue, Out-of-Service in grey.</div>
+
+          <!-- LEVEL 1 -->
+          <div class="level-block" style="margin-bottom: 28px;">
+            <div class="level-header">
+              <span>Level 1 — Ground Deck</span>
+              <span class="level-meta">Bays G01 – G12</span>
+            </div>
+            <div class="bay-grid">
+              {% for s in level1_spaces %}
+              <div class="bay-item {% if s.status == 'Vacant' %}bay-vacant{% elif s.status == 'Occupied' %}bay-occupied{% else %}bay-oos{% endif %}">
+                <div class="bay-code">{{ s.space_number }}</div>
+                <div class="bay-type">{{ s.space_type }}</div>
+                <div class="bay-status-text">{{ s.status }}</div>
+                {% if s.occupant_plate %}
+                <div class="bay-plate">{{ s.occupant_plate }}</div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- LEVEL 2 -->
+          <div class="level-block" style="margin-bottom: 28px;">
+            <div class="level-header">
+              <span>Level 2 — Mezzanine Floor</span>
+              <span class="level-meta">Bays M01 – M10</span>
+            </div>
+            <div class="bay-grid">
+              {% for s in level2_spaces %}
+              <div class="bay-item {% if s.status == 'Vacant' %}bay-vacant{% elif s.status == 'Occupied' %}bay-occupied{% else %}bay-oos{% endif %}">
+                <div class="bay-code">{{ s.space_number }}</div>
+                <div class="bay-type">{{ s.space_type }}</div>
+                <div class="bay-status-text">{{ s.status }}</div>
+                {% if s.occupant_plate %}
+                <div class="bay-plate">{{ s.occupant_plate }}</div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- LEVEL 3 -->
+          <div class="level-block" style="margin-bottom: 28px;">
+            <div class="level-header">
+              <span>Level 3 — Upper Deck</span>
+              <span class="level-meta">Bays U01 – U10</span>
+            </div>
+            <div class="bay-grid">
+              {% for s in level3_spaces %}
+              <div class="bay-item {% if s.status == 'Vacant' %}bay-vacant{% elif s.status == 'Occupied' %}bay-occupied{% else %}bay-oos{% endif %}">
+                <div class="bay-code">{{ s.space_number }}</div>
+                <div class="bay-type">{{ s.space_type }}</div>
+                <div class="bay-status-text">{{ s.status }}</div>
+                {% if s.occupant_plate %}
+                <div class="bay-plate">{{ s.occupant_plate }}</div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- LEVEL 4 -->
+          <div class="level-block">
+            <div class="level-header">
+              <span>Level 4 — Rooftop Deck</span>
+              <span class="level-meta">Bays R01 – R08</span>
+            </div>
+            <div class="bay-grid">
+              {% for s in level4_spaces %}
+              <div class="bay-item {% if s.status == 'Vacant' %}bay-vacant{% elif s.status == 'Occupied' %}bay-occupied{% else %}bay-oos{% endif %}">
+                <div class="bay-code">{{ s.space_number }}</div>
+                <div class="bay-type">{{ s.space_type }}</div>
+                <div class="bay-status-text">{{ s.status }}</div>
+                {% if s.occupant_plate %}
+                <div class="bay-plate">{{ s.occupant_plate }}</div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- SECTION 2: PARKED VEHICLES BY LEVEL (CLASSIFIED TABLES) -->
       <div id="occupancy-sec" class="dashboard-section">
-        <!-- SUMMARY OVERVIEW TABLE -->
-        <div class="card">
-          <div class="card-title">Building Deck Capacity Summary</div>
-          <div class="card-subtitle">Aggregate metrics across all 4 building decks.</div>
-          <div style="overflow-x: auto;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Building Deck</th>
-                  <th>Total Capacity</th>
-                  <th>Occupied Bays</th>
-                  <th>Available Bays</th>
-                  <th>Occupancy Rate</th>
-                </tr>
-              </thead>
-              <tbody id="occupancy-summary-body">
-                <tr><td colspan="5" style="color: var(--muted);">Loading live deck summary...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         <!-- 4 SEPARATE TABLES FOR PARKED DRIVERS CLASSIFIED BY LEVEL -->
         <div class="card">
           <div class="card-title">Active Parked Vehicles Classified by Building Deck (30+ Sessions)</div>
@@ -573,39 +685,38 @@
       <div id="visuals-sec" class="dashboard-section">
         <div class="card">
           <div class="card-title">Executive Analytical Visualizations</div>
-          <div class="card-subtitle">Smooth, responsive interactive frontend charts powered by Chart.js</div>
-          <div class="charts-grid">
-            <!-- Chart 1: Bar Chart (Floor Deck Revenue Yield) -->
+          <div class="charts-grid" style="margin-top: 18px;">
+            <!-- Chart 1: Floor Deck Revenue Yield -->
             <div class="chart-panel">
               <div class="chart-title">Floor Deck Revenue Yield</div>
-              <div class="chart-desc">Gross financial revenue collected per building floor deck (Bar Chart)</div>
+              <div class="chart-desc">Gross financial revenue collected per building floor deck</div>
               <div class="chart-canvas-wrapper">
                 <canvas id="deckRevenueChart"></canvas>
               </div>
             </div>
 
-            <!-- Chart 2: Doughnut / Pie Chart (Revenue by Collection Channel) -->
+            <!-- Chart 2: Revenue by Collection Channel -->
             <div class="chart-panel">
               <div class="chart-title">Revenue by Collection Channel</div>
-              <div class="chart-desc">Automated self-service machine vs attendant cash assistance (Pie/Doughnut Chart)</div>
+              <div class="chart-desc">Automated self-service machine vs attendant cash assistance</div>
               <div class="chart-canvas-wrapper">
                 <canvas id="channelsPieChart"></canvas>
               </div>
             </div>
 
-            <!-- Chart 3: Horizontal Stacked Bar Chart (Real-Time Deck Capacity Allocation) -->
+            <!-- Chart 3: Real-Time Deck Capacity Allocation -->
             <div class="chart-panel">
               <div class="chart-title">Real-Time Deck Capacity Allocation</div>
-              <div class="chart-desc">Live bay occupancy vs available capacity across decks (Stacked Bar Chart)</div>
+              <div class="chart-desc">Live bay occupancy vs available capacity across decks</div>
               <div class="chart-canvas-wrapper">
                 <canvas id="liveOccupancyChart"></canvas>
               </div>
             </div>
 
-            <!-- Chart 4: Multi-type Combo Bar & Line Chart (Daily Intake Velocity & Cumulative Trajectory) -->
+            <!-- Chart 4: Daily Intake Velocity & Cumulative Trajectory -->
             <div class="chart-panel">
               <div class="chart-title">Daily Intake Velocity & Cumulative Trajectory</div>
-              <div class="chart-desc">Daily intake receipts with cumulative growth trajectory (Bar & Line Chart)</div>
+              <div class="chart-desc">Daily intake receipts with cumulative growth trajectory</div>
               <div class="chart-canvas-wrapper">
                 <canvas id="dailyTrendChart"></canvas>
               </div>
@@ -947,20 +1058,22 @@
         const occRes = await fetch('/api/occupancy');
         const occData = await occRes.json();
 
-        // Populate Summary Table
+        // Populate Summary Table if present
         const occSummaryBody = document.getElementById('occupancy-summary-body');
-        occSummaryBody.innerHTML = '';
-        occData.floors.forEach(fl => {
-          occSummaryBody.innerHTML += `
-            <tr>
-              <td><strong>${fl.name}</strong></td>
-              <td>${fl.capacity} bays</td>
-              <td>${fl.occupied} bays</td>
-              <td>${fl.available} bays</td>
-              <td><strong>${fl.rate}%</strong></td>
-            </tr>
-          `;
-        });
+        if (occSummaryBody) {
+          occSummaryBody.innerHTML = '';
+          occData.floors.forEach(fl => {
+            occSummaryBody.innerHTML += `
+              <tr>
+                <td><strong>${fl.name}</strong></td>
+                <td>${fl.capacity} bays</td>
+                <td>${fl.occupied} bays</td>
+                <td>${fl.available} bays</td>
+                <td><strong>${fl.rate}%</strong></td>
+              </tr>
+            `;
+          });
+        }
 
         // Populate 4 Classified Level Tables for Admin
         const l1Body = document.getElementById('parked-level-1-body');
