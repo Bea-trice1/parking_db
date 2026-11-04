@@ -25,7 +25,12 @@ if os.path.exists(env_file):
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'Admin@Pass2026')
 ATTENDANT_PASSWORD = os.environ.get('ATTENDANT_PASSWORD', 'Attendant@Pass2026')
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'parking_db_group8_secret_key_2026')
 
 # Attendant Profiles with individual floor levels and shift cash collections
